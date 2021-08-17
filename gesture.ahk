@@ -165,6 +165,7 @@ class GestureKey {
 
         useStartSensitivity := false
 
+        ; Wait for first move to direction
         if (!this.directionDetermined) {
             
             if (this.valueX > this.xAxisStartSensitivity) {
@@ -211,30 +212,30 @@ class GestureKey {
                     xSensitivity := this.xAxisSensitivity
                     ySensitivity := this.yAxisSensitivity
                 }
-                if ((this.direction = 0 || (this.xAxis && this.direction = 2)) && this.valueX > xSensitivity && (not this.actionRightOnce || not this.actionTriggered)) {
+                if ((this.direction = 0 || (this.xAxis && this.direction = 2)) && this.valueX > xSensitivity/2 && (not this.actionRightOnce || not this.actionTriggered)) {
                     this.actionTriggered := true
-                    executed := DllCall(this.actionRight, "Int", Floor(this.valueX / xSensitivity))
+                    executed := DllCall(this.actionRight, "Int", Floor((this.valueX + xSensitivity/2) / xSensitivity))
                     if (executed <= 0) {
                         executed := 1
                     }
                     this.valueX -= xSensitivity * executed
-                } else if ((this.direction = 1 || (this.yAxis && this.direction = 3)) && this.valueY < -ySensitivity && (not this.actionUpOnce || not this.actionTriggered)) {
+                } else if ((this.direction = 1 || (this.yAxis && this.direction = 3)) && this.valueY < -ySensitivity/2 && (not this.actionUpOnce || not this.actionTriggered)) {
                     this.actionTriggered := true
-                    executed := DllCall(this.actionUp, "Int", -Floor(-this.valueY / -ySensitivity))
+                    executed := DllCall(this.actionUp, "Int", -Floor((-this.valueY + ySensitivity/2) / -ySensitivity))
                     if (executed <= 0) {
                         executed := 1
                     }
                     this.valueY += ySensitivity * executed
-                } else if ((this.direction = 2 || (this.xAxis && this.direction = 0)) && this.valueX < -xSensitivity && (not this.actionLeftOnce || not this.actionTriggered)) {
+                } else if ((this.direction = 2 || (this.xAxis && this.direction = 0)) && this.valueX < -xSensitivity/2 && (not this.actionLeftOnce || not this.actionTriggered)) {
                     this.actionTriggered := true
-                    executed := DllCall(this.actionLeft, "Int", -Floor(-this.valueX / -xSensitivity))
+                    executed := DllCall(this.actionLeft, "Int", -Floor((-this.valueX + xSensitivity/2) / -xSensitivity))
                     if (executed <= 0) {
                         executed := 1
                     }
                     this.valueX += xSensitivity * executed
-                } else if ((this.direction = 3 || (this.yAxis && this.direction = 1)) && this.valueY > ySensitivity && (not this.actionDownOnce || not this.actionTriggered)) {
+                } else if ((this.direction = 3 || (this.yAxis && this.direction = 1)) && this.valueY > ySensitivity/2 && (not this.actionDownOnce || not this.actionTriggered)) {
                     this.actionTriggered := true
-                    executed := DllCall(this.actionDown, "Int", Floor(this.valueY / ySensitivity))
+                    executed := DllCall(this.actionDown, "Int", Floor((this.valueY + ySensitivity/2) / ySensitivity))
                     if (executed <= 0) {
                         executed := 1
                     }
@@ -272,11 +273,11 @@ ClickCtrlW() {
 }
 
 ClickCtrlPgUp() {
-    SendInput ^{PgUp}
+    Send ^{PgUp}
 }
 
 ClickCtrlPgDn() {
-    SendInput ^{PgDn}
+    Send ^{PgDn}
 }
 
 ClickMinimize() {
@@ -291,7 +292,7 @@ tabControl := new GestureKey("F14")
 tabControl.SetClick(RegisterCallback("ClickCtrlW"))
 tabControl.SetLeft(RegisterCallback("ClickCtrlPgUp"), false)
 tabControl.SetRight(RegisterCallback("ClickCtrlPgDn"), false)
-tabControl.SetXAxis(600, 50)
+tabControl.SetXAxis(500, 100)
 tabControl.SetUp(RegisterCallback("ClickMaximize"), true)
 tabControl.SetDown(RegisterCallback("ClickMinimize"), true)
 
