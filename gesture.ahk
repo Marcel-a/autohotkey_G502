@@ -10,10 +10,31 @@ SendMode Input
 class AdditionalKey {
     key := 0
     callback := 0
+    geastureKey := 0
 
-    __New(key, callback) {
+    __New(key, callback, geastureKey) {
         this.key := key
         this.callback := callback
+        this.geastureKey := geastureKey
+    }
+
+    Invoke() {
+        DllCall(this.callback)
+        this.geastureKey.direction := -1
+        this.geastureKey.directionDetermined := true
+        this.geastureKey.actionTriggered := true
+    }
+
+    Register() {
+        key:= this.key
+        ptr := this["Invoke"].bind(this)
+        Hotkey %key%, %ptr%, On
+    }
+
+    Unregister() {
+        key:= this.key
+        ptr := this["Invoke"].bind(this)
+        Hotkey %key%, %ptr%, Off
     }
 }
 
@@ -113,7 +134,7 @@ class GestureKey {
     }
 
     AddAdditionalKey(key, callback) {
-        ak := new AdditionalKey(key, callback)
+        ak := new AdditionalKey(key, callback, this)
         this.additionalKeys.Push(ak)
     }
 
@@ -142,9 +163,7 @@ class GestureKey {
         this.firstY := fY
 
         for index, e in this.additionalKeys {
-            key := e.key
-            ptr := e["callback"].bind(e)
-            Hotkey %key%, %ptr%
+            e.Register()
         }
 
         ptr := this["WatchCursor"].bind(this)
@@ -263,6 +282,10 @@ class GestureKey {
             key := this.yAxisKey
             Send {%key% up}
         }
+
+        for index, e in this.additionalKeys {
+            e.Unregister()
+        }
     }
 
 }
@@ -290,11 +313,13 @@ ClickMaximize() {
 
 tabControl := new GestureKey("F14")
 tabControl.SetClick(RegisterCallback("ClickCtrlW"))
-tabControl.SetLeft(RegisterCallback("ClickCtrlPgUp"), false)
-tabControl.SetRight(RegisterCallback("ClickCtrlPgDn"), false)
+tabControl.SetLeft(RegisterCallback("ClickCtrlPgUp"), true)
+tabControl.SetRight(RegisterCallback("ClickCtrlPgDn"), true)
 tabControl.SetXAxis(500, 100)
 tabControl.SetUp(RegisterCallback("ClickMaximize"), true)
 tabControl.SetDown(RegisterCallback("ClickMinimize"), true)
+tabControl.AddAdditionalKey("WheelUp", RegisterCallback("ClickCtrlPgUp"))
+tabControl.AddAdditionalKey("WheelDown", RegisterCallback("ClickCtrlPgDn"))
 
 tabControl.Start()
 
@@ -327,12 +352,24 @@ ClickVolumeUp(amount) {
     return amount
 }
 
+ClickVolumeDownSingle() {
+    amount = 2
+    SoundSet -%amount%
+}
+
+ClickVolumeUpSingle() {
+    amount = 2
+    SoundSet +%amount%
+}
+
 mediaControl := new GestureKey("F13")
 mediaControl.SetClick(RegisterCallback("ClickPlay"))
 mediaControl.SetLeft(RegisterCallback("ClickPrev"), true)
 mediaControl.SetRight(RegisterCallback("ClickNext"), true)
 mediaControl.SetUp(RegisterCallback("ClickVolumeUp"), false)
 mediaControl.SetDown(RegisterCallback("ClickVolumeDown"), false)
+mediaControl.AddAdditionalKey("WheelDown", RegisterCallback("ClickVolumeDownSingle"))
+mediaControl.AddAdditionalKey("WheelUp", RegisterCallback("ClickVolumeUpSingle"))
 mediaControl.SetYAxis(10, 50)
 
 mediaControl.Start()
